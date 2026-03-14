@@ -19,7 +19,7 @@ class SearchViewModel: ObservableObject {
     @Published var tolerance: Double = 0.25
     // Modo 2: par en ángulo
     @Published var planet1: Planet = .sun
-    @Published var planet2: Planet = .moon
+    @Published var planet2: Planet = .venus
     @Published var targetAngle: Double = 0
     @Published var angleTolerance: Double = 1.0
     // Modo 3: múltiples planetas en sus grados
