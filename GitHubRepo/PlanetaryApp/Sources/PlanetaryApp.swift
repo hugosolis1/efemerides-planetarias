@@ -82,7 +82,6 @@ struct SectionHeader: View {
             .font(.system(size: 11, weight: .semibold, design: .monospaced))
             .foregroundColor(.goldAccent)
             .textCase(.uppercase)
-            .kerning(2)
             .padding(.horizontal, 4)
     }
 }
@@ -125,7 +124,7 @@ struct DateTimePicker: View {
             Text(title)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
                 .foregroundColor(.goldAccent)
-                .textCase(.uppercase).kerning(1.5)
+                .textCase(.uppercase)
             DatePicker("", selection: $date, displayedComponents: [.date, .hourAndMinute])
                 .datePickerStyle(.compact)
                 .colorScheme(.dark)
