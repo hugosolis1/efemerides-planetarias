@@ -1,0 +1,71 @@
+name: PlanetaryApp
+options:
+  bundleIdPrefix: com.efemerides
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15"
+  createIntermediateGroups: true
+  defaultConfig: Release
+
+settings:
+  base:
+    PRODUCT_NAME: Efemérides
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_BITCODE: NO
+    DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+    SWIFT_OPTIMIZATION_LEVEL: "-O"
+    GCC_OPTIMIZATION_LEVEL: s
+    VALIDATE_PRODUCT: NO
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGN_IDENTITY: ""
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGN_ENTITLEMENTS: ""
+    PROVISIONING_PROFILE_SPECIFIER: ""
+
+targets:
+  PlanetaryApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: PlanetaryApp/Sources
+        type: group
+      - path: PlanetaryApp/Assets.xcassets
+    info:
+      path: PlanetaryApp/Info.plist
+      properties:
+        CFBundleDisplayName: Efemérides
+        CFBundleIdentifier: com.efemerides.planetaryapp
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchScreen:
+          UIColorName: AccentColor
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        LSRequiresIPhoneOS: true
+        UIUserInterfaceStyle: Dark
+        MinimumOSVersion: "15.0"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.efemerides.planetaryapp
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: NO
+        PROVISIONING_PROFILE_SPECIFIER: ""
+
+schemes:
+  PlanetaryApp:
+    build:
+      targets:
+        PlanetaryApp: all
+    archive:
+      config: Release
