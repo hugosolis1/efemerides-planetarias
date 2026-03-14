@@ -1,0 +1,52 @@
+name: Build Unsigned IPA
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate --spec project.yml
+
+      - name: Archive unsigned
+        run: |
+          xcodebuild archive \
+            -project PlanetaryApp.xcodeproj \
+            -scheme PlanetaryApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$RUNNER_TEMP/PlanetaryApp.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            DEVELOPMENT_TEAM="" \
+            SKIP_INSTALL=NO
+
+      - name: Package IPA
+        run: |
+          APP=$(find "$RUNNER_TEMP/PlanetaryApp.xcarchive" -name "*.app" -type d | head -1)
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$APP" "$RUNNER_TEMP/Payload/"
+          cd "$RUNNER_TEMP"
+          zip -r "PlanetaryApp_unsigned.ipa" Payload/
+          cp "$RUNNER_TEMP/PlanetaryApp_unsigned.ipa" "$GITHUB_WORKSPACE/"
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlanetaryApp-unsigned-IPA
+          path: PlanetaryApp_unsigned.ipa
+          retention-days: 30
