@@ -6,145 +6,61 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Create Xcode project manually
+      - name: Fix assets and create project
         script: |
           set -e
 
-          # Crear estructura del .xcodeproj
-          mkdir -p PlanetaryApp.xcodeproj/project.xcworkspace
+          # Mover Assets.xcassets a la raíz donde Xcode lo busca
+          cp -R PlanetaryApp/Assets.xcassets ./Assets.xcassets
 
-          # Workspace data
-          cat > PlanetaryApp.xcodeproj/project.xcworkspace/contents.xcworkspacedata << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <Workspace version = "1.0">
-            <FileRef location = "self:">
-            </FileRef>
-          </Workspace>
+          # Crear AppIcon vacío válido
+          mkdir -p Assets.xcassets/AppIcon.appiconset
+          cat > Assets.xcassets/AppIcon.appiconset/Contents.json << 'EOF'
+          {
+            "images": [],
+            "info": { "author": "xcode", "version": 1 }
+          }
           EOF
 
-          # Recopilar archivos Swift
-          SWIFT_FILES=$(find PlanetaryApp/Sources -name "*.swift" | sort)
-          echo "Archivos Swift encontrados:"
-          echo "$SWIFT_FILES"
-
-          # Generar UUIDs
-          PROJ_UUID="AA000001000000000000000A"
-          GROUP_UUID="AA000001000000000000000B"
-          SOURCES_UUID="AA000001000000000000000C"
-          RESOURCES_UUID="AA000001000000000000000D"
-          FRAMEWORKS_UUID="AA000001000000000000000E"
-          TARGET_UUID="AA000001000000000000000F"
-          CONFIG_LIST_UUID="AA000001000000000000001A"
-          CONFIG_UUID="AA000001000000000000001B"
-          TARGET_CONFIG_LIST="AA000001000000000000001C"
-          TARGET_CONFIG_UUID="AA000001000000000000001D"
-          ASSETS_UUID="AA000001000000000000001E"
-          ASSETS_FILE_UUID="AA000001000000000000001F"
-
-          # Crear entradas para cada Swift file
-          FILE_REFS=""
-          BUILD_FILES=""
-          SOURCES_CHILDREN=""
-          idx=100
-          for f in $SWIFT_FILES; do
-            fname=$(basename "$f")
-            fuuid="BB$(printf '%022d' $idx)"
-            bfuuid="CC$(printf '%022d' $idx)"
-            FILE_REFS="$FILE_REFS
-            $fuuid = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = \"$fname\"; sourceTree = \"<group>\"; };"
-            BUILD_FILES="$BUILD_FILES
-            $bfuuid = {isa = PBXBuildFile; fileRef = $fuuid; };"
-            SOURCES_CHILDREN="$SOURCES_CHILDREN $fuuid,"
-            SOURCES_BUILD_REFS="$SOURCES_BUILD_REFS $bfuuid,"
-            idx=$((idx+1))
-          done
-
-          cat > PlanetaryApp.xcodeproj/project.pbxproj << PBXEOF
-          // !$*UTF8*$!
+          # Crear AccentColor válido
+          mkdir -p Assets.xcassets/AccentColor.colorset
+          cat > Assets.xcassets/AccentColor.colorset/Contents.json << 'EOF'
           {
-            archiveVersion = 1;
-            classes = {};
-            objectVersion = 56;
-            objects = {
-          $FILE_REFS
-          $BUILD_FILES
-            $ASSETS_FILE_UUID = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-            $ASSETS_UUID = {isa = PBXBuildFile; fileRef = $ASSETS_FILE_UUID; };
-            $GROUP_UUID = {
-              isa = PBXGroup;
-              children = ( $SOURCES_CHILDREN $ASSETS_FILE_UUID, );
-              sourceTree = "<group>";
-            };
-            $SOURCES_UUID = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( $SOURCES_BUILD_REFS ); runOnlyForDeploymentPostprocessing = 0; };
-            $RESOURCES_UUID = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ( $ASSETS_UUID, ); runOnlyForDeploymentPostprocessing = 0; };
-            $FRAMEWORKS_UUID = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-            $TARGET_UUID = {
-              isa = PBXNativeTarget;
-              buildConfigurationList = $TARGET_CONFIG_LIST;
-              buildPhases = ( $SOURCES_UUID, $RESOURCES_UUID, $FRAMEWORKS_UUID, );
-              buildRules = ();
-              dependencies = ();
-              name = PlanetaryApp;
-              productName = PlanetaryApp;
-              productType = "com.apple.product-type.application";
-            };
-            $PROJ_UUID = {
-              isa = PBXProject;
-              buildConfigurationList = $CONFIG_LIST_UUID;
-              compatibilityVersion = "Xcode 14.0";
-              developmentRegion = es;
-              hasScannedForEncodings = 0;
-              knownRegions = (en, Base,);
-              mainGroup = $GROUP_UUID;
-              targets = ( $TARGET_UUID, );
-            };
-            $CONFIG_LIST_UUID = {isa = XCConfigurationList; buildConfigurations = ( $CONFIG_UUID, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-            $CONFIG_UUID = {isa = XCBuildConfiguration; name = Release; buildSettings = {}; };
-            $TARGET_CONFIG_LIST = {
-              isa = XCConfigurationList;
-              buildConfigurations = ( $TARGET_CONFIG_UUID, );
-              defaultConfigurationIsVisible = 0;
-              defaultConfigurationName = Release;
-            };
-            $TARGET_CONFIG_UUID = {
-              isa = XCBuildConfiguration;
-              name = Release;
-              buildSettings = {
-                ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-                ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-                CODE_SIGN_IDENTITY = "";
-                CODE_SIGNING_ALLOWED = NO;
-                CODE_SIGNING_REQUIRED = NO;
-                DEVELOPMENT_TEAM = "";
-                INFOPLIST_FILE = "PlanetaryApp/Info.plist";
-                IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-                PRODUCT_BUNDLE_IDENTIFIER = "com.efemerides.planetaryapp";
-                PRODUCT_NAME = "\$(TARGET_NAME)";
-                PROVISIONING_PROFILE_SPECIFIER = "";
-                SKIP_INSTALL = NO;
-                SWIFT_VERSION = 5.0;
-                TARGETED_DEVICE_FAMILY = "1,2";
-                ALWAYS_SEARCH_USER_PATHS = NO;
-                SWIFT_SOURCE_FILE_SEARCH_PATHS = "PlanetaryApp/Sources";
-              };
-            };
-            };
-            rootObject = $PROJ_UUID;
+            "colors": [{"color": {"color-space": "srgb","components": {"alpha": "1.000","blue": "0.000","green": "0.843","red": "1.000"}},"idiom": "universal"}],
+            "info": { "author": "xcode", "version": 1 }
           }
-          PBXEOF
+          EOF
 
-          echo "✅ Proyecto creado"
-          ls -la PlanetaryApp.xcodeproj/
+          cat > Assets.xcassets/Contents.json << 'EOF'
+          {"info": {"author": "xcode","version": 1}}
+          EOF
+
+          echo "✅ Assets listos"
+          ls -la Assets.xcassets/
+
+      - name: Install XcodeGen
+        script: brew install xcodegen
+
+      - name: Generate Xcode project
+        script: |
+          set -e
+          xcodegen generate --spec project.yml
+          echo "✅ Proyecto generado:"
+          ls -la *.xcodeproj/ 2>/dev/null || find . -name "*.xcodeproj" -type d
 
       - name: Build archive
         script: |
           set -e
+          XCODEPROJ=$(find . -maxdepth 2 -name "*.xcodeproj" -type d | head -1)
+          SCHEME=$(basename "$XCODEPROJ" .xcodeproj)
+          echo "Proyecto: $XCODEPROJ | Scheme: $SCHEME"
           xcodebuild archive \
-            -project PlanetaryApp.xcodeproj \
-            -scheme PlanetaryApp \
+            -project "$XCODEPROJ" \
+            -scheme "$SCHEME" \
             -configuration Release \
             -sdk iphoneos \
             -archivePath "$CM_BUILD_DIR/PlanetaryApp.xcarchive" \
+            ASSETCATALOG_COMPILER_APPICON_NAME="" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
