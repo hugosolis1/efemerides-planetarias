@@ -562,7 +562,7 @@ func calcPlanets(jd JD: Double) -> [PlanetPosition] {
         let g2=geoEcl(hLT2,eH2)
         let nut2=nutObl(T2)
         let lam2=norm360(g2.lam+nut2.dPsi/3600)
-        var diff=lam-lam2; if diff>180{diff-=360}; if diff<-180{diff+=360}
+        var diff = lam - lam2; if diff > 180 { diff -= 360 }; if diff < (-180) { diff += 360 }
         let retro=diff<0
         var elong=abs(norm360(lam-sunGeoLon)); if elong>180{elong=360-elong}
         out.append(PlanetPosition(
