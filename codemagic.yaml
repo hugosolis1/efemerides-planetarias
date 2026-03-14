@@ -10,7 +10,10 @@ workflows:
         script: brew install xcodegen
 
       - name: Generate Xcode project
-        script: xcodegen generate --spec project.yml
+        script: |
+          ls -la
+          find . -name "project.yml" 
+          xcodegen generate --spec $(find . -name "project.yml" | head -1)
 
       - name: Build archive
         script: |
