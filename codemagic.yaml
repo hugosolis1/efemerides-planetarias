@@ -1,0 +1,39 @@
+workflows:
+  ios-unsigned:
+    name: iOS Unsigned IPA
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      xcode: 15.4
+    scripts:
+      - name: Install XcodeGen
+        script: brew install xcodegen
+
+      - name: Generate Xcode project
+        script: xcodegen generate --spec project.yml
+
+      - name: Build archive
+        script: |
+          xcodebuild archive \
+            -project PlanetaryApp.xcodeproj \
+            -scheme PlanetaryApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$CM_BUILD_DIR/PlanetaryApp.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            DEVELOPMENT_TEAM="" \
+            SKIP_INSTALL=NO
+
+      - name: Package IPA
+        script: |
+          APP=$(find "$CM_BUILD_DIR/PlanetaryApp.xcarchive" -name "*.app" -type d | head -1)
+          mkdir -p "$CM_BUILD_DIR/Payload"
+          cp -R "$APP" "$CM_BUILD_DIR/Payload/"
+          cd "$CM_BUILD_DIR"
+          zip -r "PlanetaryApp_unsigned.ipa" Payload/
+
+    artifacts:
+      - $CM_BUILD_DIR/PlanetaryApp_unsigned.ipa
