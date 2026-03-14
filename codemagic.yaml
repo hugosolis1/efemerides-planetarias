@@ -11,15 +11,20 @@ workflows:
 
       - name: Generate Xcode project
         script: |
+          xcodegen generate --spec project.yml
+          echo "=== Archivos generados ==="
           ls -la
-          find . -name "project.yml" 
-          xcodegen generate --spec $(find . -name "project.yml" | head -1)
+          find . -name "*.xcodeproj" -type d
 
       - name: Build archive
         script: |
+          XCODEPROJ=$(find . -name "*.xcodeproj" -type d | head -1)
+          SCHEME=$(basename "$XCODEPROJ" .xcodeproj)
+          echo "Usando proyecto: $XCODEPROJ"
+          echo "Scheme: $SCHEME"
           xcodebuild archive \
-            -project PlanetaryApp.xcodeproj \
-            -scheme PlanetaryApp \
+            -project "$XCODEPROJ" \
+            -scheme "$SCHEME" \
             -configuration Release \
             -sdk iphoneos \
             -archivePath "$CM_BUILD_DIR/PlanetaryApp.xcarchive" \
@@ -33,10 +38,12 @@ workflows:
       - name: Package IPA
         script: |
           APP=$(find "$CM_BUILD_DIR/PlanetaryApp.xcarchive" -name "*.app" -type d | head -1)
+          echo "App encontrado: $APP"
           mkdir -p "$CM_BUILD_DIR/Payload"
           cp -R "$APP" "$CM_BUILD_DIR/Payload/"
           cd "$CM_BUILD_DIR"
           zip -r "PlanetaryApp_unsigned.ipa" Payload/
+          ls -lh PlanetaryApp_unsigned.ipa
 
     artifacts:
       - $CM_BUILD_DIR/PlanetaryApp_unsigned.ipa
