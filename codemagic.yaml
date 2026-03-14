@@ -6,47 +6,148 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Fix assets and create project
+      - name: Show repo structure
+        script: |
+          echo "=== Estructura del repo ==="
+          find . -not -path './.git/*' | sort
+
+      - name: Create all required assets from scratch
         script: |
           set -e
 
-          # Mover Assets.xcassets a la raíz donde Xcode lo busca
-          cp -R PlanetaryApp/Assets.xcassets ./Assets.xcassets
-
-          # Crear AppIcon vacío válido
+          # Crear Assets.xcassets en la raíz
           mkdir -p Assets.xcassets/AppIcon.appiconset
-          cat > Assets.xcassets/AppIcon.appiconset/Contents.json << 'EOF'
-          {
-            "images": [],
-            "info": { "author": "xcode", "version": 1 }
-          }
-          EOF
-
-          # Crear AccentColor válido
           mkdir -p Assets.xcassets/AccentColor.colorset
-          cat > Assets.xcassets/AccentColor.colorset/Contents.json << 'EOF'
-          {
-            "colors": [{"color": {"color-space": "srgb","components": {"alpha": "1.000","blue": "0.000","green": "0.843","red": "1.000"}},"idiom": "universal"}],
-            "info": { "author": "xcode", "version": 1 }
-          }
-          EOF
 
           cat > Assets.xcassets/Contents.json << 'EOF'
-          {"info": {"author": "xcode","version": 1}}
+          {"info": {"author": "xcode", "version": 1}}
           EOF
 
-          echo "✅ Assets listos"
-          ls -la Assets.xcassets/
+          cat > Assets.xcassets/AppIcon.appiconset/Contents.json << 'EOF'
+          {"images": [], "info": {"author": "xcode", "version": 1}}
+          EOF
 
-      - name: Install XcodeGen
-        script: brew install xcodegen
+          cat > Assets.xcassets/AccentColor.colorset/Contents.json << 'EOF'
+          {"colors": [{"color": {"color-space": "srgb", "components": {"alpha": "1.000", "blue": "0.000", "green": "0.843", "red": "1.000"}}, "idiom": "universal"}], "info": {"author": "xcode", "version": 1}}
+          EOF
 
-      - name: Generate Xcode project
+          # Crear Info.plist en la raíz
+          cat > Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDisplayName</key><string>Efemérides</string>
+            <key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
+            <key>CFBundleIdentifier</key><string>com.efemerides.planetaryapp</string>
+            <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+            <key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleShortVersionString</key><string>1.0</string>
+            <key>CFBundleVersion</key><string>1</string>
+            <key>LSRequiresIPhoneOS</key><true/>
+            <key>UIApplicationSceneManifest</key>
+            <dict>
+              <key>UIApplicationSupportsMultipleScenes</key><false/>
+              <key>UISceneConfigurations</key><dict/>
+            </dict>
+            <key>UILaunchScreen</key><dict/>
+            <key>UISupportedInterfaceOrientations</key>
+            <array>
+              <string>UIInterfaceOrientationPortrait</string>
+              <string>UIInterfaceOrientationLandscapeLeft</string>
+              <string>UIInterfaceOrientationLandscapeRight</string>
+            </array>
+            <key>UIUserInterfaceStyle</key><string>Dark</string>
+            <key>MinimumOSVersion</key><string>15.0</string>
+          </dict>
+          </plist>
+          EOF
+
+          echo "✅ Assets e Info.plist creados"
+
+      - name: Create project.yml and generate Xcode project
         script: |
           set -e
+
+          # Detectar dónde están los Swift files
+          SWIFT_DIR=$(find . -name "AstronomyEngine.swift" -not -path './.git/*' | head -1 | xargs dirname)
+          echo "Swift files en: $SWIFT_DIR"
+
+          # Crear project.yml apuntando al directorio correcto
+          cat > project.yml << EOF
+          name: PlanetaryApp
+          options:
+            bundleIdPrefix: com.efemerides
+            deploymentTarget:
+              iOS: "15.0"
+            xcodeVersion: "15"
+          settings:
+            base:
+              PRODUCT_NAME: Efemerides
+              MARKETING_VERSION: "1.0.0"
+              CURRENT_PROJECT_VERSION: "1"
+              SWIFT_VERSION: "5.9"
+              IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+              TARGETED_DEVICE_FAMILY: "1,2"
+              CODE_SIGNING_ALLOWED: NO
+              CODE_SIGN_IDENTITY: ""
+              CODE_SIGNING_REQUIRED: NO
+              PROVISIONING_PROFILE_SPECIFIER: ""
+              DEVELOPMENT_TEAM: ""
+          targets:
+            PlanetaryApp:
+              type: application
+              platform: iOS
+              deploymentTarget: "15.0"
+              sources:
+                - path: $SWIFT_DIR
+                  type: group
+                - path: Assets.xcassets
+              info:
+                path: Info.plist
+                properties:
+                  CFBundleDisplayName: Efemerides
+                  CFBundleIdentifier: com.efemerides.planetaryapp
+                  CFBundleShortVersionString: "1.0.0"
+                  CFBundleVersion: "1"
+                  LSRequiresIPhoneOS: true
+                  UIUserInterfaceStyle: Dark
+                  UILaunchScreen: {}
+                  UIApplicationSceneManifest:
+                    UIApplicationSupportsMultipleScenes: false
+                    UISceneConfigurations: {}
+                  UISupportedInterfaceOrientations:
+                    - UIInterfaceOrientationPortrait
+                    - UIInterfaceOrientationLandscapeLeft
+                    - UIInterfaceOrientationLandscapeRight
+              settings:
+                base:
+                  PRODUCT_BUNDLE_IDENTIFIER: com.efemerides.planetaryapp
+                  CODE_SIGNING_ALLOWED: NO
+                  CODE_SIGN_IDENTITY: ""
+                  CODE_SIGNING_REQUIRED: NO
+                  PROVISIONING_PROFILE_SPECIFIER: ""
+                  DEVELOPMENT_TEAM: ""
+                  ASSETCATALOG_COMPILER_APPICON_NAME: ""
+          schemes:
+            PlanetaryApp:
+              build:
+                targets:
+                  PlanetaryApp: all
+              archive:
+                config: Release
+          EOF
+
+          echo "✅ project.yml creado"
+          cat project.yml
+
+          # Instalar y ejecutar XcodeGen
+          brew install xcodegen
           xcodegen generate --spec project.yml
-          echo "✅ Proyecto generado:"
-          ls -la *.xcodeproj/ 2>/dev/null || find . -name "*.xcodeproj" -type d
+
+          echo "✅ Proyecto Xcode generado:"
+          find . -name "*.xcodeproj" -type d
 
       - name: Build archive
         script: |
@@ -54,30 +155,32 @@ workflows:
           XCODEPROJ=$(find . -maxdepth 2 -name "*.xcodeproj" -type d | head -1)
           SCHEME=$(basename "$XCODEPROJ" .xcodeproj)
           echo "Proyecto: $XCODEPROJ | Scheme: $SCHEME"
+
           xcodebuild archive \
             -project "$XCODEPROJ" \
             -scheme "$SCHEME" \
             -configuration Release \
             -sdk iphoneos \
             -archivePath "$CM_BUILD_DIR/PlanetaryApp.xcarchive" \
-            ASSETCATALOG_COMPILER_APPICON_NAME="" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             PROVISIONING_PROFILE_SPECIFIER="" \
             DEVELOPMENT_TEAM="" \
+            ASSETCATALOG_COMPILER_APPICON_NAME="" \
             SKIP_INSTALL=NO
 
       - name: Package IPA
         script: |
           set -e
           APP=$(find "$CM_BUILD_DIR/PlanetaryApp.xcarchive" -name "*.app" -type d | head -1)
-          echo "App: $APP"
+          echo "App encontrado: $APP"
           mkdir -p "$CM_BUILD_DIR/Payload"
           cp -R "$APP" "$CM_BUILD_DIR/Payload/"
           cd "$CM_BUILD_DIR"
           zip -r "PlanetaryApp_unsigned.ipa" Payload/
           ls -lh PlanetaryApp_unsigned.ipa
+          echo "✅ IPA listo"
 
     artifacts:
       - $CM_BUILD_DIR/PlanetaryApp_unsigned.ipa
